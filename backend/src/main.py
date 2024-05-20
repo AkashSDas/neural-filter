@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from src.utils.settings import get_settings
 from time import time
+from .routers import auth
 
 settings = get_settings()
 app = FastAPI(title="Neural Filter", version="0.1.0")
@@ -37,3 +38,6 @@ async def add_process_time_header(req: Request, call_next) -> Response:
 @app.get("/", tags=["testing"])
 async def root():
     return {"message": "Welcome to Neural Filter"}
+
+
+app.include_router(auth.router)
