@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7418b87377503368025bb12141cd0c91b47d9d199241b6c35e9b5bdd4ae98a4d"
+            "sha256": "7607773f34ff62467a659c4e0339c2e2eb0fb48dc6c54c35fb794f1720dd34e7"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,14 @@
         ]
     },
     "default": {
+        "aiosmtplib": {
+            "hashes": [
+                "sha256:138599a3227605d29a9081b646415e9e793796ca05322a78f69179f0135016a3",
+                "sha256:1e631a7a3936d3e11c6a144fb8ffd94bb4a99b714f2cb433e825d88b698e37bc"
+            ],
+            "markers": "python_version >= '3.7' and python_version < '4.0'",
+            "version": "==2.0.2"
+        },
         "alembic": {
             "hashes": [
                 "sha256:2edcc97bed0bd3272611ce3a98d98279e9c209e7186e43e75bbb1b2bdfdbcc43",
@@ -40,6 +48,14 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==4.3.0"
+        },
+        "blinker": {
+            "hashes": [
+                "sha256:1779309f71bf239144b9399d06ae925637cf6634cf6bd131104184531bf67c01",
+                "sha256:8f77b09d3bf7c795e969e9486f39c2c5e9c39d4ee07424be2bc594ece9642d83"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==1.8.2"
         },
         "certifi": {
             "hashes": [
@@ -193,6 +209,15 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==0.0.4"
+        },
+        "fastapi-mail": {
+            "hashes": [
+                "sha256:9095b713bd9d3abb02fe6d7abb637502aaf680b52e177d60f96273ef6bc8bb70",
+                "sha256:fa5ef23b2dea4d3ba4587f4bbb53f8f15274124998fb4e40629b3b636c76c398"
+            ],
+            "index": "pypi",
+            "markers": "python_version < '4.0' and python_full_version >= '3.8.1'",
+            "version": "==1.4.1"
         },
         "h11": {
             "hashes": [

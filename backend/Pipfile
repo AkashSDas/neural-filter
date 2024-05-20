@@ -11,6 +11,7 @@ email-validator = "*"
 sqlalchemy = "*"
 alembic = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
+fastapi-mail = "*"
 
 [dev-packages]
 
