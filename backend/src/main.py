@@ -1,10 +1,12 @@
+from time import time
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from src.utils.database import Base, engine
 from src.utils.settings import get_settings
-from time import time
-from .routers import auth
+from src.routers import auth
 
 settings = get_settings()
+Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Neural Filter", version="0.1.0")
 
 # =========================================

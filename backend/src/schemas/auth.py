@@ -12,22 +12,15 @@ class SignupIn(BaseModel):
 
     email: EmailStr = Field(..., examples=["akash@gmail.com"])
 
-    @model_validator(mode="after")  # type: ignore
-    @classmethod
-    def check_if_credentials_are_unique(cls, instance: "SignupIn") -> "SignupIn":
-        if False:
-            raise ValueError("Username or email already exists")
-        return instance
 
-
-class User(BaseModel):
+class UserInDB(BaseModel):
     id: int
     username: str
     email: EmailStr
 
 
 class SignupOut(BaseModel):
-    user: User
+    user: UserInDB
     access_token: str
 
 
@@ -44,7 +37,7 @@ class LoginIn(BaseModel):
 
 
 class LoginOut(BaseModel):
-    user: User
+    user: UserInDB
     access_token: str
 
 
