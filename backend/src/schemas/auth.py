@@ -25,14 +25,6 @@ class SignupOut(BaseModel):
 
 
 class LoginIn(BaseModel):
-    username: str = Field(
-        ...,
-        min_length=3,
-        max_length=50,
-        pattern="^[a-zA-Z0-9_]+$",
-        examples=["akash", "AkashSDas"],
-    )
-
     email: EmailStr = Field(..., examples=["akash@gmail.com"])
 
 

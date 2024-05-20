@@ -1,15 +1,18 @@
-from typing import Annotated
+from typing import Annotated, cast
 from fastapi import APIRouter, Body, HTTPException, status
 from src.schemas.auth import SignupIn, UserInDB, LoginIn, LoginOut, LogoutOut, SignupOut
 from src.dependencies import db_dependency, current_user
 from src.models.user import User
 from src.utils.auth import create_access_token
+from uuid import uuid4 as uuid
+from datetime import datetime, timedelta
+from src.utils.email import send_magic_link
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post("/email-signup", status_code=status.HTTP_201_CREATED)
 async def signup(body: Annotated[SignupIn, Body()], db: db_dependency) -> dict:
     db_user = (
         db.query(User)
@@ -37,12 +40,47 @@ async def me(user: current_user, db: db_dependency) -> dict:
     }
 
 
-@router.post("/login", status_code=status.HTTP_200_OK, response_model=LoginOut)
-async def login(body: Annotated[LoginIn, Body()]) -> LoginOut:
-    return LoginOut(
-        user=UserInDB(id=1, username=body.username, email=body.email),
-        access_token="access_token",
+@router.post("/email-login", status_code=status.HTTP_200_OK)
+async def init_magic_link_login(
+    body: Annotated[LoginIn, Body()], db: db_dependency
+) -> dict:
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User does not exist")
+
+    token = str(uuid())
+    user.magic_link_token = token  # type: ignore
+    user.magic_link_token_expiration = datetime.now() + timedelta(minutes=15)  # type: ignore
+    db.commit()
+
+    await send_magic_link(email=cast(str, user.email), token=token)
+    return {"message": "Magic link sent to your email"}
+
+
+@router.post(
+    "/email-login/{token}", status_code=status.HTTP_200_OK, response_model=LoginOut
+)
+async def complete_magic_link_login(token: str, db: db_dependency) -> LoginOut:
+    threshold_time = datetime.now() + timedelta(minutes=15)
+    user = (
+        db.query(User)
+        .filter(
+            User.magic_link_token == token,
+            User.magic_link_token_expiration <= threshold_time,
+        )
+        .first()
     )
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    user.magic_link_token = None  # type: ignore
+    user.magic_link_token_expiration = None  # type: ignore
+    db.commit()
+
+    access_token = create_access_token(data={"sub": cast(str, user.email)})
+    user = UserInDB(id=user.id, username=user.username, email=user.email).model_dump()  # type: ignore
+    return LoginOut(user=user, access_token=access_token).model_dump()  # type: ignore
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK, response_model=LogoutOut)

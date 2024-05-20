@@ -20,7 +20,7 @@ async def send_magic_link(email: EmailStr, token: str):
     message = MessageSchema(
         subject="Magic Link Login",
         recipients=[email],
-        body=f"Click the link to login: {settings.backend_url}/auth/magic-link?token={token}",
+        body=f"Click the link to login: <a href='{settings.backend_url}/auth/email-login/{token}'>link</a>",
         subtype=MessageType.html,
     )
 
