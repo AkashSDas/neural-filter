@@ -1,8 +1,10 @@
 from typing import Annotated, cast
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Body, HTTPException, status, Request
+from pydantic import EmailStr
 from src.schemas.auth import SignupIn, UserInDB, LoginIn, LoginOut, LogoutOut, SignupOut
 from src.dependencies import db_dependency, current_user
 from src.models.user import User
+from src.models.auth import TokenBlacklist
 from src.utils.auth import create_access_token
 from uuid import uuid4 as uuid
 from datetime import datetime, timedelta
@@ -42,7 +44,9 @@ async def me(user: current_user, db: db_dependency) -> dict:
 
 @router.post("/email-login", status_code=status.HTTP_200_OK)
 async def init_magic_link_login(
-    body: Annotated[LoginIn, Body()], db: db_dependency
+    body: Annotated[LoginIn, Body()],
+    db: db_dependency,
+    background_tasks: BackgroundTasks,
 ) -> dict:
     user = db.query(User).filter(User.email == body.email).first()
     if not user:
@@ -53,11 +57,11 @@ async def init_magic_link_login(
     user.magic_link_token_expiration = datetime.now() + timedelta(minutes=15)  # type: ignore
     db.commit()
 
-    await send_magic_link(email=cast(str, user.email), token=token)
+    background_tasks.add_task(send_magic_link, cast(EmailStr, user.email), token)
     return {"message": "Magic link sent to your email"}
 
 
-@router.post(
+@router.get(
     "/email-login/{token}", status_code=status.HTTP_200_OK, response_model=LoginOut
 )
 async def complete_magic_link_login(token: str, db: db_dependency) -> LoginOut:
@@ -83,6 +87,19 @@ async def complete_magic_link_login(token: str, db: db_dependency) -> LoginOut:
     return LoginOut(user=user, access_token=access_token).model_dump()  # type: ignore
 
 
-@router.post("/logout", status_code=status.HTTP_200_OK, response_model=LogoutOut)
-async def logout() -> LogoutOut:
+@router.get("/logout", status_code=status.HTTP_200_OK, response_model=LogoutOut)
+async def logout(request: Request, user: current_user, db: db_dependency) -> LogoutOut:
+    access_token = request.headers.get("Authorization")
+    if not isinstance(access_token, str):
+        raise HTTPException(status_code=400, detail="Invalid token")
+    elif len(access_token.split("Bearer ")) != 2:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    access_token = access_token.split("Bearer ")[1]
+
+    user = db.query(User).filter(User.email == user["email"]).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User does not exist")
+
+    db.add(TokenBlacklist(user_id=user.id, access_token=access_token))
+    db.commit()
     return LogoutOut(message="Logged out successfully")

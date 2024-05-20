@@ -7,6 +7,7 @@ from src.models.user import User
 from src.utils.settings import get_settings
 from src.utils.database import SessionLocal
 from sqlalchemy.orm import Session
+from src.models.auth import TokenBlacklist
 
 settings = get_settings()
 
@@ -58,6 +59,12 @@ async def get_current_user(
         else:
             token_data = TokenData(email=email)
     except JWTError:
+        raise cred_exception
+
+    is_blacklisted = (
+        db.query(TokenBlacklist).filter(TokenBlacklist.access_token == token).first()
+    )
+    if is_blacklisted:
         raise cred_exception
 
     user = db.query(User).filter(User.email == token_data.email).first()
