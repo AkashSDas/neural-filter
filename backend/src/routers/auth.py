@@ -7,6 +7,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED, response_model=SignupOut)
 async def signup(body: Annotated[SignupIn, Body()]) -> SignupOut:
+
     return SignupOut(
         user=User(id=1, username=body.username, email=body.email),
         access_token="access_token",

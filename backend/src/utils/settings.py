@@ -9,6 +9,8 @@ from functools import lru_cache
 class Settings(BaseSettings):
     app_name: str
     frontend_url: str
+    db_url: str
+
     model_config = SettingsConfigDict(env_file=".env")
 
 
