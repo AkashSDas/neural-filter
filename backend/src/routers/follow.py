@@ -59,3 +59,26 @@ async def get_followers(db: db_dependency, user: current_user) -> dict:
             for follower in followers
         ],
     }
+
+
+@router.get("/following", tags=["follow"], status_code=status.HTTP_200_OK)
+async def get_following(db: db_dependency, user: current_user) -> dict:
+    """Get a list of users that a user is following."""
+
+    user = db.query(User).filter(User.email == user["email"]).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Follower does not exist")
+
+    following = (
+        db.query(User)
+        .join(Follow, User.id == Follow.followed_id)
+        .filter(Follow.follower_id == user.id)
+        .all()
+    )
+
+    return {
+        "following": [
+            UserInDB(id=following_user.id, username=following_user.username, email=following_user.email)  # type: ignore
+            for following_user in following
+        ],
+    }
