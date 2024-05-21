@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from src.utils.database import Base, engine
 from src.utils.settings import get_settings
-from src.routers import auth
+from src.routers import auth, follow
 
 settings = get_settings()
 Base.metadata.create_all(bind=engine)
@@ -43,3 +43,4 @@ async def root():
 
 
 app.include_router(auth.router)
+app.include_router(follow.router)
